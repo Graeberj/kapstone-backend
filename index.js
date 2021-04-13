@@ -10,9 +10,9 @@ const db = [
     id: "218-the-terminator",
     favorite: false,
     reviews: [
-      { username: "onett", title: "sucks", id: "r1" },
-      { username: "twoson", title: "amazing", id: "r2" },
-      { username: "threed", title: "too many robots", id: "r3" },
+      { username: "onett", title: "sucks", review: "", id: "r1" },
+      { username: "twoson", title: "amazing", review: "", id: "r2" },
+      { username: "threed", title: "too many robots", review: "", id: "r3" },
     ],
   },
   {
@@ -20,21 +20,21 @@ const db = [
 
     id: "1885-the-karate-kid",
     favorite: false,
-    reviews: {},
+    reviews: [],
   },
   {
     name: "terminator 2",
 
     id: "280-terminator-2-judgment-day",
     favorite: false,
-    reviews: {},
+    reviews: [],
   },
   {
     name: "karate kid 2",
 
     id: "8856-the-karate-kid-part-ii",
     favorite: false,
-    reviews: {},
+    reviews: [],
   },
 ];
 
@@ -92,7 +92,7 @@ app.post("/:movieId/reviews", (req, res) => {
     review: req.body.review,
     id: nanoid(),
   };
-  console.log(selectedMovie.id);
+
   selectedMovie.reviews.push(newReview);
   res.status(201).json(selectedMovie.reviews);
 });
@@ -123,28 +123,54 @@ app.patch("/:movieId/reviews/:reviewId", (req, res) => {
       return false;
     }
   });
-  const selectReview = selectedMovie.reviews.find((review) => {
+  let selectReview = selectedMovie.reviews.find((review) => {
     if (review.id === req.params.reviewId) {
       return true;
     } else {
       return false;
     }
   });
-  if (selectReview === -1) {
+  if (selectReview === false) {
     res.status(400).send("Bad request, review doesn't exist");
   }
-  selectedMovie.reviews[selectReview] = {
-    ...req.body[selectReview],
+  console.log(selectReview);
+  selectReview = {
+    ...req.body.selectReview,
     ...req.body,
 
-    username: db[selectedMovie].reviews[selectReview].username,
+    username: selectReview.username,
     id: req.params.reviewId,
   };
-  res.send("updated successfully");
+  res.send(selectReview);
 });
 //create delete request to remove review about movie
+app.delete("/:movieId/reviews/:reviewId", (req, res) => {
+  const selectedMovie = db.find((movie) => {
+    if (movie.id === req.params.movieId) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+  selectedMovie.reviews = selectedMovie.reviews.filter(
+    (review) => review.id !== req.params.reviewId
+  );
 
+  res.send(selectedMovie.reviews);
+});
 //create post request to make movie favorite
+app.post("/:movieId/favorite", (req, res) => {
+  let favoriteMovie = db.find((movie) => {
+    if (movie.id === req.params.movieId) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+  favoriteMovie.favorite = !favoriteMovie.favorite;
+
+  res.json(favoriteMovie);
+});
 app.listen(port, () => {
   console.log(`creating something at http://localhost:${port}`);
 });
