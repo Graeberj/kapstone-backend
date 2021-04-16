@@ -3,40 +3,32 @@ const { nanoid } = require("nanoid");
 const app = express();
 const port = 3000;
 
-const db = [
-  {
-    name: "terminator",
-
-    id: "218-the-terminator",
-    favorite: false,
-    reviews: [
-      { username: "onett", title: "sucks", review: "", id: "r1" },
-      { username: "twoson", title: "amazing", review: "", id: "r2" },
-      { username: "threed", title: "too many robots", review: "", id: "r3" },
-    ],
-  },
-  {
-    name: "karate kid",
-
-    id: "1885-the-karate-kid",
-    favorite: false,
-    reviews: [],
-  },
-  {
-    name: "terminator 2",
-
-    id: "280-terminator-2-judgment-day",
-    favorite: false,
-    reviews: [],
-  },
-  {
-    name: "karate kid 2",
-
-    id: "8856-the-karate-kid-part-ii",
-    favorite: false,
-    reviews: [],
-  },
-];
+const db = {
+  reviews: [
+    {
+      username: "onett",
+      title: "sucks",
+      review: "",
+      id: "r1",
+      movieId: "32302",
+    },
+    {
+      username: "twoson",
+      title: "amazing",
+      review: "",
+      id: "r2",
+      movieId: "32302",
+    },
+    {
+      username: "threed",
+      title: "too many robots",
+      review: "",
+      id: "r3",
+      movieId: "32302",
+    },
+  ],
+  favorites: [],
+};
 
 app.use(express.json());
 
@@ -57,120 +49,92 @@ app.use(function (req, res, next) {
 app.get("/", (req, res) => {
   res.send(db);
 });
-app.get("/:movieId", (req, res) => {
-  const selectedMovie = db.find((movie) => {
-    if (movie.id === req.params.movieId) {
-      return true;
-    } else {
-      return false;
-    }
-  });
-  res.json(selectedMovie);
-});
-app.get("/:movieId/reviews", (req, res) => {
-  const selectedMovie = db.find((movie) => {
-    if (movie.id === req.params.movieId) {
-      return true;
-    } else {
-      return false;
-    }
-  });
-  res.json(selectedMovie.reviews);
-});
-//create post request for creating review about movie
-app.post("/:movieId/reviews", (req, res) => {
-  const selectedMovie = db.find((movie) => {
-    if (movie.id === req.params.movieId) {
-      return true;
-    } else {
-      return false;
-    }
-  });
-  const newReview = {
-    username: req.body.username,
-    title: req.body.title,
-    review: req.body.review,
-    id: nanoid(),
-  };
 
-  selectedMovie.reviews.push(newReview);
-  res.status(201).json(selectedMovie.reviews);
+//Get Reviews for each Movie
+app.get("/:movieId/reviews", (req, res) => {
+  const movieReviews = db.reviews.filter(
+    (review) => review.movieId === req.params.movieId
+  );
+  if (movieReviews.length === 0) {
+    res.status(404).send("No Reviews Found For This Movie!");
+  }
+  res.json(movieReviews);
 });
+
 //get request for individual reviews on a movie
 app.get("/:movieId/reviews/:reviewId", (req, res) => {
-  const selectedMovie = db.find((movie) => {
-    if (movie.id === req.params.movieId) {
-      return true;
-    } else {
-      return false;
-    }
-  });
-  const selectReview = selectedMovie.reviews.find((review) => {
-    if (review.id === req.params.reviewId) {
-      return true;
-    } else {
-      return false;
-    }
-  });
+  const selectReview = db.reviews.find(
+    (review) => review.id === req.params.reviewId
+  );
+  if (selectReview === undefined) {
+    res
+      .status(404)
+      .send("This Review Doesn't Exist - Perhaps you should write one");
+  }
   res.json(selectReview);
 });
+
 //create patch request for updating review about movie
-app.patch("/:movieId/reviews/:reviewId", (req, res) => {
-  const selectedMovie = db.find((movie) => {
-    if (movie.id === req.params.movieId) {
-      return true;
-    } else {
-      return false;
-    }
-  });
-  let selectReview = selectedMovie.reviews.find((review) => {
-    if (review.id === req.params.reviewId) {
-      return true;
-    } else {
-      return false;
-    }
-  });
-  if (selectReview === false) {
-    res.status(400).send("Bad request, review doesn't exist");
+app.put("/:movieId/reviews/create", (req, res) => {
+  const { username, title, review } = req.body;
+
+  if (!username || !title || !review) {
+    res
+      .status(400)
+      .send("Missing required field. Please check username, title and review.");
   }
-  console.log(selectReview);
-  selectReview = {
-    ...req.body.selectReview,
-    ...req.body,
 
-    username: selectReview.username,
-    id: req.params.reviewId,
+  const newReview = {
+    username,
+    title,
+    review,
+    id: nanoid(),
+    movieId: req.params.movieId,
   };
-  res.send(selectReview);
+  db.reviews.push(newReview);
+  res.send(db.reviews[db.reviews.length - 1]);
 });
-//create delete request to remove review about movie
-app.delete("/:movieId/reviews/:reviewId", (req, res) => {
-  const selectedMovie = db.find((movie) => {
-    if (movie.id === req.params.movieId) {
-      return true;
-    } else {
-      return false;
-    }
-  });
-  selectedMovie.reviews = selectedMovie.reviews.filter(
-    (review) => review.id !== req.params.reviewId
-  );
 
-  res.send(selectedMovie.reviews);
-});
+// //create delete request to remove review about movie
+// app.delete("/:movieId/reviews/:reviewId", (req, res) => {
+//   const selectedMovie = db.find((movie) => {
+//     if (movie.id === req.params.movieId) {
+//       return true;
+//     } else {
+//       return false;
+//     }
+//   });
+//   selectedMovie.reviews = selectedMovie.reviews.filter(
+//     (review) => review.id !== req.params.reviewId
+//   );
+
+//   res.send(selectedMovie.reviews);
+// });
+
 //create post request to make movie favorite
 app.post("/:movieId/favorite", (req, res) => {
-  let favoriteMovie = db.find((movie) => {
-    if (movie.id === req.params.movieId) {
-      return true;
-    } else {
-      return false;
-    }
-  });
-  favoriteMovie.favorite = !favoriteMovie.favorite;
-
-  res.json(favoriteMovie);
+  const checkFavorites = db.favorites.find(
+    (movie) => movie === req.params.movieId
+  );
+  if (checkFavorites !== undefined) {
+    res.status(400).send("Movie is already favorited!");
+  }
+  db.favorites.push(req.params.movieId);
+  res.send(db.favorites);
 });
+
+//Remove movie from favorites list
+app.delete("/:movieId/favorite", (req, res) => {
+  const toDelete = db.favorites.findIndex(
+    (movie) => movie === req.params.movieId
+  );
+  if (toDelete === -1) {
+    res.status(400).send("Movie is not favorited!");
+  }
+  db.favorites.splice(toDelete, 1);
+  res.send(db.favorites);
+});
+
 app.listen(port, () => {
   console.log(`creating something at http://localhost:${port}`);
 });
