@@ -74,7 +74,7 @@ app.get("/:movieId/reviews/:reviewId", (req, res) => {
   res.json(selectReview);
 });
 
-//create patch request for updating review about movie
+//create put request for adding review about movie
 app.put("/:movieId/reviews/create", (req, res) => {
   const { username, title, review } = req.body;
 
@@ -94,22 +94,6 @@ app.put("/:movieId/reviews/create", (req, res) => {
   db.reviews.push(newReview);
   res.send(db.reviews[db.reviews.length - 1]);
 });
-
-// //create delete request to remove review about movie
-// app.delete("/:movieId/reviews/:reviewId", (req, res) => {
-//   const selectedMovie = db.find((movie) => {
-//     if (movie.id === req.params.movieId) {
-//       return true;
-//     } else {
-//       return false;
-//     }
-//   });
-//   selectedMovie.reviews = selectedMovie.reviews.filter(
-//     (review) => review.id !== req.params.reviewId
-//   );
-
-//   res.send(selectedMovie.reviews);
-// });
 
 //create post request to make movie favorite
 app.post("/:movieId/favorite", (req, res) => {
