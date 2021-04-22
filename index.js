@@ -27,7 +27,7 @@ const db = {
       movieId: "32302",
     },
   ],
-  favorites: [],
+  favorites: [37136, 550],
 };
 
 app.use(express.json());
@@ -48,6 +48,11 @@ app.use(function (req, res, next) {
 
 app.get("/", (req, res) => {
   res.send(db);
+});
+
+// get all reviews
+app.get("/reviews", (req, res) => {
+  res.send(db.reviews);
 });
 
 //Get Reviews for each Movie
@@ -93,6 +98,11 @@ app.put("/:movieId/reviews/create", (req, res) => {
   };
   db.reviews.push(newReview);
   res.send(db.reviews[db.reviews.length - 1]);
+});
+
+// get all favorites
+app.get("/favorites", (req, res) => {
+  res.send(db.favorites);
 });
 
 //create post request to make movie favorite
