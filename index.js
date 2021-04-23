@@ -107,14 +107,14 @@ app.get("/favorites", (req, res) => {
 
 //create post request to make movie favorite
 app.post("/:movieId/favorite", (req, res) => {
-  const checkFavorites = db.favorites.find(
-    (movie) => movie === req.params.movieId
+  const checkFavorites = db.favorites.findIndex(
+    (movie) => movie == req.params.movieId
   );
-  if (checkFavorites !== undefined) {
-    res.status(400).send("Movie is already favorited!");
+  if (checkFavorites === -1) {
+    db.favorites.push(Number(req.params.movieId));
+    res.send(db.favorites);
   }
-  db.favorites.push(req.params.movieId);
-  res.send(db.favorites);
+  res.status(400).send("Movie is already favorited!");
 });
 
 //Remove movie from favorites list
